@@ -20,14 +20,36 @@ const cors_1 = __importDefault(require("cors"));
 const express_session_1 = __importDefault(require("express-session"));
 const passport_1 = __importDefault(require("passport"));
 const user_1 = require("./user");
+const video_1 = require("./video");
 const GoogleStrategy = require('passport-google-oauth20');
 const GitHubStrategy = require('passport-github').Strategy;
 const LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
-// let userFeed: any[] = [];
 dotenv_1.default.config();
 const host = '0.0.0.0';
 const app = (0, express_1.default)();
 const port = process.env.PORT;
+// const sequelize = require('./util/db')
+// import { User } from './models/user';
+// const User = require('./models/user');
+// import { Video } from './models/course';
+// const Video = require('./models/video');
+// import {User, Video} from './models/association'
+// const { User, Video } = require('./models/association')
+// import { User } from './models/association';
+// User.hasMany(Video, { foreignKey: 'userId' });
+// export const VideoM = Video.belongsTo(User, { foreignKey: 'userId' });
+// const UserModel: typeof User = User;
+// sequelize
+//     .sync()
+//     .then((data: any) => {
+//         // console.log(data)
+//     })
+//     .catch((error: Error) => {
+//         console.log(error)
+//     })
+//     .finally(() => {
+//         console.log('complete')
+//     })
 // db config
 try {
     mongoose_1.default.connect(process.env.USER_SECRET, () => { console.log('Connected to Mongoose successfull'); });
@@ -53,6 +75,17 @@ app.use((0, express_session_1.default)({
 }));
 app.use(passport_1.default.initialize());
 app.use(passport_1.default.session());
+// passport.serializeUser((user: IMongoDBUser, done: any) => {
+//     return done(null, user._id);
+// });
+// passport.deserializeUser(async (id: string, done: any) => {
+//     try {
+//         const user = await UserModel.findByPk(id as any, { raw: true });
+//         return done(null, user);
+//     } catch (error) {
+//         return done(error, null);
+//     }
+// });
 passport_1.default.serializeUser((user, done) => {
     return done(null, user._id);
 });
@@ -61,6 +94,36 @@ passport_1.default.deserializeUser((id, done) => {
         return done(null, doc);
     });
 });
+// passport.use(new GoogleStrategy({
+//     clientID: process.env.GOOGLE_CLIENT_ID,
+//     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+//     callbackURL: "/auth/google/callback",
+// },
+//     async (_: any, __: any, profile: any, cb: any) => {
+//         try {
+//             const user = await User.findOne({
+//                 where: {
+//                     googleId: profile.id
+//                 }
+//             },);
+//             if (user) {
+//                 return cb(null, user);
+//             } else {
+//                 const formattedName = profile.displayName.split(" ").join("_");
+//                 const newUser = await User.create({
+//                     displayName: `${formattedName}${Math.floor(1000 + Math.random() * 9000)}`,
+//                     userName: formattedName,
+//                     googleId: profile.id,
+//                     displayPicture: profile.photos[0].value,
+//                     isVerified: false
+//                 });
+//                 return cb(null, newUser);
+//             }
+//         } catch (error) {
+//             return cb(error);
+//         }
+//     }
+// ));
 passport_1.default.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
@@ -167,47 +230,34 @@ app
     // })
 }))
     .post((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    user_1.User.findOneAndUpdate({ _id: req.body.user }, { $push: { tweets: req.body } }, { $upsert: true, }, ((err, doc) => {
-        if (err)
-            return console.log(err);
-        else {
-            console.log('user tweets updated');
-        }
-    }));
-    user_1.User.findById(req.body.user, (err, doc) => {
+}));
+app
+    .route('/upload')
+    .get((req, res) => {
+    console.log(req.body);
+})
+    .post((req, res) => {
+    // console.log(req.body)
+    // Video.create(req.body, (err: Error, doc: any) => {
+    //     if (err) return err
+    //     else console.log('Video Added')
+    // })
+    video_1.Video.create({
+        video_title: req.body.video_title,
+        video_description: req.body.video_description,
+        course: req.body.course,
+        fileName: [req.body.fileName],
+        thumbnail: req.body.thumbnail,
+        userId: req.body.userId,
+        uuid: req.body.uuid,
+        date: req.body.date
+    }, (err, doc) => {
         if (err)
             return err;
         else {
-            // Feed.create({
-            //     user: req.body.user,
-            //     userName: doc.userName,
-            //     displayName: doc.displayName,
-            //     displayPicture: doc.displayPicture,
-            //     tweet: req.body.tweet,
-            //     uuid: req.body.uuid,
-            //     date: req.body.date
-            // }, (err: any, doc: any) => {
-            //     if (err) return err
-            //     else { console.log("Feeeeeeed updated") }
-            // })
+            console.log("Video Added");
         }
     });
-}));
-app
-    .route('/delete_tweet')
-    .get((req, res) => {
-})
-    .post((req, res) => {
-    // console.log(req.body.tweet)
-    // const tweet_id = req.body.tweet
-    // Feed.findOneAndDelete({ _id: tweet_id }, (err: any, docs: any) => {
-    //     if (err) {
-    //         console.log(err)
-    //     }
-    //     else {
-    //         console.log("Deleted User : ", docs);
-    //     }
-    // });
 });
 app
     .route('/auth/logout')

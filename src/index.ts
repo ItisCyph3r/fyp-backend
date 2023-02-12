@@ -6,16 +6,50 @@ import cors from 'cors';
 import session from 'express-session';
 import passport from 'passport';
 import { User } from './user';
+import { Video } from './video';
 import { IMongoDBUser } from './types';
 const GoogleStrategy = require('passport-google-oauth20');
 const GitHubStrategy = require('passport-github').Strategy;
 const LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
-// let userFeed: any[] = [];
-
 dotenv.config();
 const host = '0.0.0.0'
 const app: Express = express();
 const port = process.env.PORT;
+
+
+
+// const sequelize = require('./util/db')
+
+// import { User } from './models/user';
+
+// const User = require('./models/user');
+
+// import { Video } from './models/course';
+
+// const Video = require('./models/video');
+
+// import {User, Video} from './models/association'
+// const { User, Video } = require('./models/association')
+
+// import { User } from './models/association';
+
+// User.hasMany(Video, { foreignKey: 'userId' });
+// export const VideoM = Video.belongsTo(User, { foreignKey: 'userId' });
+
+// const UserModel: typeof User = User;
+
+
+// sequelize
+//     .sync()
+//     .then((data: any) => {
+//         // console.log(data)
+//     })
+//     .catch((error: Error) => {
+//         console.log(error)
+//     })
+//     .finally(() => {
+//         console.log('complete')
+//     })
 
 // db config
 try {
@@ -23,6 +57,8 @@ try {
 } catch (error: any) {
     throw error
 }
+
+
 
 // middleware
 app.set("trust proxy", 1);
@@ -46,6 +82,20 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 
+// passport.serializeUser((user: IMongoDBUser, done: any) => {
+//     return done(null, user._id);
+// });
+
+// passport.deserializeUser(async (id: string, done: any) => {
+//     try {
+//         const user = await UserModel.findByPk(id as any, { raw: true });
+//         return done(null, user);
+//     } catch (error) {
+//         return done(error, null);
+//     }
+// });
+
+
 passport.serializeUser((user: IMongoDBUser, done: any) => {
     return done(null, user._id);
 })
@@ -56,6 +106,40 @@ passport.deserializeUser((id: string, done: any) => {
     })
 
 })
+
+// passport.use(new GoogleStrategy({
+//     clientID: process.env.GOOGLE_CLIENT_ID,
+//     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+//     callbackURL: "/auth/google/callback",
+// },
+//     async (_: any, __: any, profile: any, cb: any) => {
+//         try {
+//             const user = await User.findOne({
+//                 where: {
+//                     googleId: profile.id
+//                 }
+//             },);
+
+//             if (user) {
+//                 return cb(null, user);
+//             } else {
+//                 const formattedName = profile.displayName.split(" ").join("_");
+
+//                 const newUser = await User.create({
+//                     displayName: `${formattedName}${Math.floor(1000 + Math.random() * 9000)}`,
+//                     userName: formattedName,
+//                     googleId: profile.id,
+//                     displayPicture: profile.photos[0].value,
+//                     isVerified: false
+//                 });
+
+//                 return cb(null, newUser);
+//             }
+//         } catch (error) {
+//             return cb(error);
+//         }
+//     }
+// ));
 
 
 passport.use(new GoogleStrategy({
@@ -79,7 +163,7 @@ passport.use(new GoogleStrategy({
                         googleId: profile.id,
                         displayPicture: profile.photos[0].value,
                         isVerified: false
-                    }, (err, user) => {
+                    }, (err: Error, user: any) => {
                         return cb(err, user)
                     })
                 }
@@ -87,6 +171,8 @@ passport.use(new GoogleStrategy({
         })
     }
 ));
+
+
 
 passport.use(new LinkedInStrategy({
     clientID: process.env.LINKEDIN_KEY,
@@ -112,7 +198,7 @@ passport.use(new LinkedInStrategy({
                             linkedinId: profile.id,
                             displayPicture: profile.photos[0].value,
                             isVerified: false
-                        }, (err, user) => {
+                        }, (err: Error, user: any) => {
                             return cb(err, user)
                         })
                     }
@@ -179,57 +265,37 @@ app
     })
 
     .post(async (req, res) => {
-        User.findOneAndUpdate(
-            { _id: req.body.user },
-            { $push: { tweets: req.body } },
-            { $upsert: true, },
-            ((err: mongoose.CallbackError, doc: any) => {
-                if (err) return console.log(err)
-                else {
-                    console.log('user tweets updated')
-                }
-            })
-        )
 
-        User.findById(req.body.user, (err: Error, doc: any) => {
-            if (err) return err
-            else {
-
-                // Feed.create({
-                //     user: req.body.user,
-                //     userName: doc.userName,
-                //     displayName: doc.displayName,
-                //     displayPicture: doc.displayPicture,
-                //     tweet: req.body.tweet,
-                //     uuid: req.body.uuid,
-                //     date: req.body.date
-                // }, (err: any, doc: any) => {
-                //     if (err) return err
-                //     else { console.log("Feeeeeeed updated") }
-                // })
-            }
-        })
 
     })
 
 app
-    .route('/delete_tweet')
+    .route('/upload')
     .get((req, res) => {
-
+        console.log(req.body)
     })
     .post((req, res) => {
-        // console.log(req.body.tweet)
-        // const tweet_id = req.body.tweet
-        // Feed.findOneAndDelete({ _id: tweet_id }, (err: any, docs: any) => {
-        //     if (err) {
-        //         console.log(err)
-        //     }
-        //     else {
-        //         console.log("Deleted User : ", docs);
-        //     }
-        // });
-    })
+        // console.log(req.body)
 
+        // Video.create(req.body, (err: Error, doc: any) => {
+        //     if (err) return err
+        //     else console.log('Video Added')
+        // })
+        Video.create({
+            video_title: req.body.video_title,
+            video_description: req.body.video_description,
+            course: req.body.course,
+            fileName: [req.body.fileName],
+            thumbnail: req.body.thumbnail,
+            userId: req.body.userId,
+            uuid: req.body.uuid,
+            date: req.body.date
+        },
+            (err: any, doc: any) => {
+                if (err) return err
+                else { console.log("Video Added") }
+            })
+    })
 app
     .route('/auth/logout')
     .get((req, res) => {
