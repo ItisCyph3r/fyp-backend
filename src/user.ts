@@ -2,31 +2,31 @@ import mongoose from "mongoose";
 
 
 const userSchema = new mongoose.Schema({
-    userName: {
+    username: {
         required: true,
         type: String
     },
-    displayName: {
+    displayname: {
         required: false,
         type: String
     },
-    googleId: {
+    googleid: {
         required: false,
         type: String
     },
-    githubId: {
+    githubid: {
         required: false,
         type: String
     },
-    linkedinId: {
+    linkedinid: {
         required: false,
         type: String
     },
-    displayPicture: {
+    displaypicture: {
         required: false,
         type: String
     },
-    isVerified: {
+    isverified: {
         required: false,
         type: Boolean
     },

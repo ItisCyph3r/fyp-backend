@@ -1,30 +1,50 @@
 import mongoose from "mongoose";
 import { User } from "./user";
 
-const videoSchema = new mongoose.Schema({
+
+import { Document } from 'mongoose';
+
+interface VideoDoc extends Document {
+    video_title: string;
+    video_description: string;
+    course: string;
+    fileName: string[];
+    thumbnail: string;
+    uuid: string;
+    userId: mongoose.SchemaDefinitionProperty<string>
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+const videoSchema = new mongoose.Schema<VideoDoc>({
     video_title: {
-        // type: String,
-        type: { type: String },
+        type: String,
+        // type: { type: String },
         required: false
     },
     video_description: {
-        type: { type: String },
+        type: String,
+        // type: { type: String },
         required: false
     },
     course: {
-        type: { type: String },
+        type: String,
+        // type: { type: String },
         required: false
     },
     fileName: [{
-        type: { type: String },
+        type: String,
+        // type: { type: String },
         required: false
     }],
     thumbnail: {
-        type: { type: String },
+        type: String,
+        // type: { type: String },
         required: false
     },
     uuid: {
-        type: { type: String },
+        // type: { type: String },
+        type: String,
         // default: mongoose.Types.ObjectId,
         required: false
     },
@@ -43,5 +63,5 @@ const videoSchema = new mongoose.Schema({
 });
 
 
-export const Video = mongoose.model('Video', videoSchema);
+export const Video = mongoose.model<VideoDoc>('Video', videoSchema);
 

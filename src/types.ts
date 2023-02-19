@@ -11,6 +11,7 @@ export interface IMongoDBUser{
     googleId?: string;
     githubId?: string;
     linkedin?: string;
+    email?: string;
     displayPicture?: string;
     __v: number;
     _id: string;

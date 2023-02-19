@@ -7,28 +7,33 @@ exports.Video = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const videoSchema = new mongoose_1.default.Schema({
     video_title: {
-        // type: String,
-        type: { type: String },
+        type: String,
+        // type: { type: String },
         required: false
     },
     video_description: {
-        type: { type: String },
+        type: String,
+        // type: { type: String },
         required: false
     },
     course: {
-        type: { type: String },
+        type: String,
+        // type: { type: String },
         required: false
     },
     fileName: [{
-            type: { type: String },
+            type: String,
+            // type: { type: String },
             required: false
         }],
     thumbnail: {
-        type: { type: String },
+        type: String,
+        // type: { type: String },
         required: false
     },
     uuid: {
-        type: { type: String },
+        // type: { type: String },
+        type: String,
         // default: mongoose.Types.ObjectId,
         required: false
     },

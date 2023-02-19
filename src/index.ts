@@ -9,6 +9,8 @@ import { User } from './user';
 import { Video } from './video';
 import { IMongoDBUser } from './types';
 const GoogleStrategy = require('passport-google-oauth20');
+const LocalStrategy = require('passport-local').Strategy;
+
 const GitHubStrategy = require('passport-github').Strategy;
 const LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
 dotenv.config();
@@ -141,14 +143,41 @@ passport.deserializeUser((id: string, done: any) => {
 //     }
 // ));
 
+// passport.use(new LocalStrategy({ userName: 'email' },
+//   function(email: any, password: any, done: any) {
+//     User.findOne({ email: email }, function (err: Error, user: any) {
+//       if (err) { return done(err); }
+//       if (!user) { return done(null, false, { message: 'Incorrect email.' }); }
+//       user.authenticate(password, function(err: any, isMatch: any) {
+//         if (err) { return done(err); }
+//         if (!isMatch) { return done(null, false, { message: 'Incorrect password.' }); }
+//         return done(null, user);
+//       });
+//     });
+//   }
+// ));
+
+passport.use(new LocalStrategy(
+    function(username: any, password: any, done: any) {
+      User.findOne({ username: username }, function (err:Error, user: any) {
+        if (err) { return done(err); }
+        if (!user) { return done(null, false); }
+        if (!user.verifyPassword(password)) { return done(null, false); }
+        return done(null, user);
+      });
+    }
+  ));
 
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     callbackURL: "/auth/google/callback",
+    userProfileURL: 'https://www.googleapis.com/oauth2/v3/userinfo'
+
 },
     function (_: any, __: any, profile: any, cb: any) {
 
+        // console.log(profile)
         User.findOne({ googleId: profile.id }, async function (err: Error, doc: IMongoDBUser) {
 
             if (!err) {
@@ -161,9 +190,10 @@ passport.use(new GoogleStrategy({
                         displayName: formattedName + Math.floor(1000 + Math.random() * 9000),
                         userName: formattedName,
                         googleId: profile.id,
+                        // email: profile.emails[0].value,
                         displayPicture: profile.photos[0].value,
                         isVerified: false
-                    }, (err: Error, user: any) => {
+                    }, (err: any, user: any) => {
                         return cb(err, user)
                     })
                 }
@@ -198,7 +228,7 @@ passport.use(new LinkedInStrategy({
                             linkedinId: profile.id,
                             displayPicture: profile.photos[0].value,
                             isVerified: false
-                        }, (err: Error, user: any) => {
+                        }, (err: any, user: any) => {
                             return cb(err, user)
                         })
                     }
@@ -210,7 +240,7 @@ passport.use(new LinkedInStrategy({
 app
     .route('/auth/google')
     .get(passport.authenticate('google', {
-        scope: ['profile']
+        scope: ['profile', 'email']
     }));
 
 app.get('/auth/google/callback',
@@ -238,10 +268,26 @@ app.get('/auth/linkedin/callback', passport.authenticate('linkedin', {
 
 app
     .route('/getuser')
-    .get((req, res) => {
+    .get((req, res) => {    
         // console.log(req.user)
         res.send(req.user);
     })
+
+app
+    .route('/signup')
+    .post(function(req, res, next) {
+        const { username, password } = req.body;
+        User.findOne({ username: username }, function (err: Error, user: any) {
+            if (err) { return next(err); }
+            if (user) { return res.status(409).send({ message: 'Username already taken' }); }
+
+            const newUser = new User({ username, password });
+                newUser.save(function (err) {
+                    if (err) { return next(err); }
+                return res.send({ message: 'User created successfully' });
+            });
+        });
+    });
 
 
 
@@ -271,30 +317,73 @@ app
 
 app
     .route('/upload')
-    .get((req, res) => {
-        console.log(req.body)
+    .get(async(req, res) => {
+        
+        // Video.find({}, (err: Error, doc: any) => {
+        //     if (err) return err
+        //     else {
+        //         console.log(doc)
+        //         doc.forEach((element: any) => {
+        //             // console.log(element.userId)
+        //             User.findById(element.userId, (err: Error, user: any) => {
+        //                 if (err) return err
+        //                 else{
+        //                     console.log(user)
+        //                 }
+        //             })
+        //         });
+                
+        //         // res.json(doc)
+        //     }
+        // })
+
+        try {
+            const videos = await Video.find();
+        
+            // Fetch user profile for each video
+            const videoData = await Promise.all(videos.map(async (video) => {
+                const user = await User.findById(video.userId);
+                return {
+                video_title: video.video_title,
+                video_description: video.video_description,
+                course: video.course,
+                fileName: video.fileName[0],
+                thumbnail: video.thumbnail,
+                uuid: video.uuid,
+                // userId: video.userId,
+                user: user, // include the user profile
+                // createdAt: video.createdAt,
+                // updatedAt: video.updatedAt
+                };
+            }));
+        
+            console.log(videoData)
+            res.json(videoData);
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ message: 'Server error' });
+        }
     })
     .post((req, res) => {
-        // console.log(req.body)
-
-        // Video.create(req.body, (err: Error, doc: any) => {
-        //     if (err) return err
-        //     else console.log('Video Added')
-        // })
-        Video.create({
+        const videoObject = {
             video_title: req.body.video_title,
             video_description: req.body.video_description,
             course: req.body.course,
-            fileName: [req.body.fileName],
+            fileName: req.body.fileName,
             thumbnail: req.body.thumbnail,
             userId: req.body.userId,
             uuid: req.body.uuid,
             date: req.body.date
-        },
-            (err: any, doc: any) => {
-                if (err) return err
-                else { console.log("Video Added") }
-            })
+        };
+        Video.create(videoObject, (err, doc) => {
+            if (err) {
+                console.log(err); // Log any errors that occur during the save operation
+                return res.status(500).send('Error saving video');
+            } else {
+                console.log('Video Added:', doc); // Log the saved document for debugging purposes
+                return res.send('Video saved successfully');
+            }
+        });
     })
 app
     .route('/auth/logout')

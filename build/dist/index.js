@@ -22,6 +22,7 @@ const passport_1 = __importDefault(require("passport"));
 const user_1 = require("./user");
 const video_1 = require("./video");
 const GoogleStrategy = require('passport-google-oauth20');
+const LocalStrategy = require('passport-local').Strategy;
 const GitHubStrategy = require('passport-github').Strategy;
 const LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
 dotenv_1.default.config();
@@ -124,11 +125,40 @@ passport_1.default.deserializeUser((id, done) => {
 //         }
 //     }
 // ));
+// passport.use(new LocalStrategy({ userName: 'email' },
+//   function(email: any, password: any, done: any) {
+//     User.findOne({ email: email }, function (err: Error, user: any) {
+//       if (err) { return done(err); }
+//       if (!user) { return done(null, false, { message: 'Incorrect email.' }); }
+//       user.authenticate(password, function(err: any, isMatch: any) {
+//         if (err) { return done(err); }
+//         if (!isMatch) { return done(null, false, { message: 'Incorrect password.' }); }
+//         return done(null, user);
+//       });
+//     });
+//   }
+// ));
+passport_1.default.use(new LocalStrategy(function (username, password, done) {
+    user_1.User.findOne({ username: username }, function (err, user) {
+        if (err) {
+            return done(err);
+        }
+        if (!user) {
+            return done(null, false);
+        }
+        if (!user.verifyPassword(password)) {
+            return done(null, false);
+        }
+        return done(null, user);
+    });
+}));
 passport_1.default.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     callbackURL: "/auth/google/callback",
+    userProfileURL: 'https://www.googleapis.com/oauth2/v3/userinfo'
 }, function (_, __, profile, cb) {
+    // console.log(profile)
     user_1.User.findOne({ googleId: profile.id }, function (err, doc) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!err) {
@@ -142,6 +172,7 @@ passport_1.default.use(new GoogleStrategy({
                         displayName: formattedName + Math.floor(1000 + Math.random() * 9000),
                         userName: formattedName,
                         googleId: profile.id,
+                        // email: profile.emails[0].value,
                         displayPicture: profile.photos[0].value,
                         isVerified: false
                     }, (err, user) => {
@@ -188,7 +219,7 @@ passport_1.default.use(new LinkedInStrategy({
 app
     .route('/auth/google')
     .get(passport_1.default.authenticate('google', {
-    scope: ['profile']
+    scope: ['profile', 'email']
 }));
 app.get('/auth/google/callback', 
 // passport.authenticate('google', { failureRedirect: '/login',
@@ -213,6 +244,26 @@ app
     res.send(req.user);
 });
 app
+    .route('/signup')
+    .post(function (req, res, next) {
+    const { username, password } = req.body;
+    user_1.User.findOne({ username: username }, function (err, user) {
+        if (err) {
+            return next(err);
+        }
+        if (user) {
+            return res.status(409).send({ message: 'Username already taken' });
+        }
+        const newUser = new user_1.User({ username, password });
+        newUser.save(function (err) {
+            if (err) {
+                return next(err);
+            }
+            return res.send({ message: 'User created successfully' });
+        });
+    });
+});
+app
     .route('/')
     .get((req, res) => {
     res.json('yeaaaah boooy');
@@ -233,29 +284,68 @@ app
 }));
 app
     .route('/upload')
-    .get((req, res) => {
-    console.log(req.body);
-})
-    .post((req, res) => {
-    // console.log(req.body)
-    // Video.create(req.body, (err: Error, doc: any) => {
+    .get((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    // Video.find({}, (err: Error, doc: any) => {
     //     if (err) return err
-    //     else console.log('Video Added')
+    //     else {
+    //         console.log(doc)
+    //         doc.forEach((element: any) => {
+    //             // console.log(element.userId)
+    //             User.findById(element.userId, (err: Error, user: any) => {
+    //                 if (err) return err
+    //                 else{
+    //                     console.log(user)
+    //                 }
+    //             })
+    //         });
+    //         // res.json(doc)
+    //     }
     // })
-    video_1.Video.create({
+    try {
+        const videos = yield video_1.Video.find();
+        // Fetch user profile for each video
+        const videoData = yield Promise.all(videos.map((video) => __awaiter(void 0, void 0, void 0, function* () {
+            const user = yield user_1.User.findById(video.userId);
+            return {
+                video_title: video.video_title,
+                video_description: video.video_description,
+                course: video.course,
+                fileName: video.fileName[0],
+                thumbnail: video.thumbnail,
+                uuid: video.uuid,
+                // userId: video.userId,
+                user: user, // include the user profile
+                // createdAt: video.createdAt,
+                // updatedAt: video.updatedAt
+            };
+        })));
+        console.log(videoData);
+        res.json(videoData);
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error' });
+    }
+}))
+    .post((req, res) => {
+    const videoObject = {
         video_title: req.body.video_title,
         video_description: req.body.video_description,
         course: req.body.course,
-        fileName: [req.body.fileName],
+        fileName: req.body.fileName,
         thumbnail: req.body.thumbnail,
         userId: req.body.userId,
         uuid: req.body.uuid,
         date: req.body.date
-    }, (err, doc) => {
-        if (err)
-            return err;
+    };
+    video_1.Video.create(videoObject, (err, doc) => {
+        if (err) {
+            console.log(err); // Log any errors that occur during the save operation
+            return res.status(500).send('Error saving video');
+        }
         else {
-            console.log("Video Added");
+            console.log('Video Added:', doc); // Log the saved document for debugging purposes
+            return res.send('Video saved successfully');
         }
     });
 });
