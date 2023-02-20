@@ -1,11 +1,11 @@
 import express, { Express } from 'express';
 import dotenv from 'dotenv';
-import mongoose from 'mongoose';
+import mongoose, { Document, LeanDocument } from 'mongoose';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import session from 'express-session';
 import passport from 'passport';
-import { User } from './user';
+import { User, UserT } from './user';
 import { Video } from './video';
 import { IMongoDBUser } from './types';
 const GoogleStrategy = require('passport-google-oauth20');
@@ -17,41 +17,6 @@ dotenv.config();
 const host = '0.0.0.0'
 const app: Express = express();
 const port = process.env.PORT;
-
-
-
-// const sequelize = require('./util/db')
-
-// import { User } from './models/user';
-
-// const User = require('./models/user');
-
-// import { Video } from './models/course';
-
-// const Video = require('./models/video');
-
-// import {User, Video} from './models/association'
-// const { User, Video } = require('./models/association')
-
-// import { User } from './models/association';
-
-// User.hasMany(Video, { foreignKey: 'userId' });
-// export const VideoM = Video.belongsTo(User, { foreignKey: 'userId' });
-
-// const UserModel: typeof User = User;
-
-
-// sequelize
-//     .sync()
-//     .then((data: any) => {
-//         // console.log(data)
-//     })
-//     .catch((error: Error) => {
-//         console.log(error)
-//     })
-//     .finally(() => {
-//         console.log('complete')
-//     })
 
 // db config
 try {
@@ -84,20 +49,6 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 
-// passport.serializeUser((user: IMongoDBUser, done: any) => {
-//     return done(null, user._id);
-// });
-
-// passport.deserializeUser(async (id: string, done: any) => {
-//     try {
-//         const user = await UserModel.findByPk(id as any, { raw: true });
-//         return done(null, user);
-//     } catch (error) {
-//         return done(error, null);
-//     }
-// });
-
-
 passport.serializeUser((user: IMongoDBUser, done: any) => {
     return done(null, user._id);
 })
@@ -108,40 +59,6 @@ passport.deserializeUser((id: string, done: any) => {
     })
 
 })
-
-// passport.use(new GoogleStrategy({
-//     clientID: process.env.GOOGLE_CLIENT_ID,
-//     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-//     callbackURL: "/auth/google/callback",
-// },
-//     async (_: any, __: any, profile: any, cb: any) => {
-//         try {
-//             const user = await User.findOne({
-//                 where: {
-//                     googleId: profile.id
-//                 }
-//             },);
-
-//             if (user) {
-//                 return cb(null, user);
-//             } else {
-//                 const formattedName = profile.displayName.split(" ").join("_");
-
-//                 const newUser = await User.create({
-//                     displayName: `${formattedName}${Math.floor(1000 + Math.random() * 9000)}`,
-//                     userName: formattedName,
-//                     googleId: profile.id,
-//                     displayPicture: profile.photos[0].value,
-//                     isVerified: false
-//                 });
-
-//                 return cb(null, newUser);
-//             }
-//         } catch (error) {
-//             return cb(error);
-//         }
-//     }
-// ));
 
 // passport.use(new LocalStrategy({ userName: 'email' },
 //   function(email: any, password: any, done: any) {
@@ -168,6 +85,8 @@ passport.use(new LocalStrategy(
     }
   ));
 
+
+
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
@@ -178,7 +97,7 @@ passport.use(new GoogleStrategy({
     function (_: any, __: any, profile: any, cb: any) {
 
         // console.log(profile)
-        User.findOne({ googleId: profile.id }, async function (err: Error, doc: IMongoDBUser) {
+        User.findOne({ google_id: profile.id }, async function (err: Error, doc: IMongoDBUser) {
 
             if (!err) {
                 if (doc) {
@@ -187,12 +106,12 @@ passport.use(new GoogleStrategy({
                     const formattedName = profile.displayName.split(' ').join('_')
                     console.log(formattedName)
                     User.create({
-                        displayName: formattedName + Math.floor(1000 + Math.random() * 9000),
-                        userName: formattedName,
-                        googleId: profile.id,
+                        display_name: formattedName + Math.floor(1000 + Math.random() * 9000),
+                        user_name: formattedName,
+                        google_id: profile.id,
                         // email: profile.emails[0].value,
-                        displayPicture: profile.photos[0].value,
-                        isVerified: false
+                        display_picture: profile.photos[0].value,
+                        isverified: false
                     }, (err: any, user: any) => {
                         return cb(err, user)
                     })
@@ -212,7 +131,7 @@ passport.use(new LinkedInStrategy({
 },
     function (_: any, __: any, profile: any, cb: any) {
         // asynchronous verification, for effect...
-        console.log(profile)
+        // console.log(profile)
         process.nextTick(function () {
             User.findOne({ googleId: profile.id }, async function (err: Error, doc: IMongoDBUser) {
 
@@ -221,13 +140,13 @@ passport.use(new LinkedInStrategy({
                         return cb(err, doc)
                     } else {
                         const formattedName = profile.displayName.split(' ').join('_')
-                        console.log(formattedName)
+                        // console.log(formattedName)
                         User.create({
-                            displayName: formattedName + Math.floor(1000 + Math.random() * 9000),
-                            userName: formattedName,
-                            linkedinId: profile.id,
-                            displayPicture: profile.photos[0].value,
-                            isVerified: false
+                            display_name: formattedName + Math.floor(1000 + Math.random() * 9000),
+                            user_name: formattedName,
+                            linkedin_id: profile.id,
+                            display_picture: profile.photos[0].value,
+                            isverified: false
                         }, (err: any, user: any) => {
                             return cb(err, user)
                         })
@@ -301,13 +220,6 @@ app
     .route('/api')
     .get(async (req, res) => {
 
-        // Feed.find({}, (err: Error, doc: any) => {
-        //     if (err) return err;
-        //     else {
-        //         // console.log(doc.reverse())
-        //         res.json(doc)
-        //     }
-        // })
     })
 
     .post(async (req, res) => {
@@ -318,25 +230,6 @@ app
 app
     .route('/upload')
     .get(async(req, res) => {
-        
-        // Video.find({}, (err: Error, doc: any) => {
-        //     if (err) return err
-        //     else {
-        //         console.log(doc)
-        //         doc.forEach((element: any) => {
-        //             // console.log(element.userId)
-        //             User.findById(element.userId, (err: Error, user: any) => {
-        //                 if (err) return err
-        //                 else{
-        //                     console.log(user)
-        //                 }
-        //             })
-        //         });
-                
-        //         // res.json(doc)
-        //     }
-        // })
-
         try {
             const videos = await Video.find();
         
@@ -350,14 +243,13 @@ app
                 fileName: video.fileName[0],
                 thumbnail: video.thumbnail,
                 uuid: video.uuid,
-                // userId: video.userId,
-                user: user, // include the user profile
+                user: user, 
                 // createdAt: video.createdAt,
                 // updatedAt: video.updatedAt
                 };
             }));
         
-            console.log(videoData)
+            // console.log(videoData)
             res.json(videoData);
         } catch (err) {
             console.error(err);
@@ -385,6 +277,48 @@ app
             }
         });
     })
+
+
+app
+    .route('/home/:postId')
+    .get(async(req, res) => {
+        const urlParams = req.params.postId;
+
+
+        try {
+
+
+            const videos: any | null = await Video.findOne({uuid: urlParams});         
+
+            if (videos) {
+                
+                    const user: any | null = await User.findById(videos.userId).lean();
+
+
+                    const { video_title, video_description, course, fileName, createdAt } = videos
+                    const {_id, user_name, display_picture} = user
+
+                    const feedObject = {
+                        course: course,
+                        createdAt: createdAt,
+                        display_picture: display_picture,
+                        file_name: fileName,
+                        user_id: _id,
+                        user_name: user_name,
+                        video_title: video_title,
+                        video_description: video_description
+
+                    }
+                res.json(feedObject)
+            }
+            else{
+                res.json(null)
+            }
+        } catch (err) {
+            console.log(err)
+        }
+    })
+
 app
     .route('/auth/logout')
     .get((req, res) => {
@@ -392,7 +326,7 @@ app
             req.logout((error) => {
                 if (error) return error
             });
-            res.send("done")
+            res.send(false)
         }
     })
 

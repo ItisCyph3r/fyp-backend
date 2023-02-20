@@ -2,27 +2,27 @@ import mongoose from "mongoose";
 
 
 const userSchema = new mongoose.Schema({
-    username: {
+    user_name: {
         required: true,
         type: String
     },
-    displayname: {
+    display_name: {
         required: false,
         type: String
     },
-    googleid: {
+    google_id: {
         required: false,
         type: String
     },
-    githubid: {
+    github_id: {
         required: false,
         type: String
     },
-    linkedinid: {
+    linkedin_id: {
         required: false,
         type: String
     },
-    displaypicture: {
+    display_picture: {
         required: false,
         type: String
     },
@@ -34,4 +34,11 @@ const userSchema = new mongoose.Schema({
 }, { timestamps: true })
 
 export const User = mongoose.model('user', userSchema);
+// export const UserT = typeof(User)
+
+export interface UserT {
+    user_name?: string;
+    display_picture?: string;
+    // Add other properties as needed
+}
 

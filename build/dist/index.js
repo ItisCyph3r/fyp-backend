@@ -29,28 +29,6 @@ dotenv_1.default.config();
 const host = '0.0.0.0';
 const app = (0, express_1.default)();
 const port = process.env.PORT;
-// const sequelize = require('./util/db')
-// import { User } from './models/user';
-// const User = require('./models/user');
-// import { Video } from './models/course';
-// const Video = require('./models/video');
-// import {User, Video} from './models/association'
-// const { User, Video } = require('./models/association')
-// import { User } from './models/association';
-// User.hasMany(Video, { foreignKey: 'userId' });
-// export const VideoM = Video.belongsTo(User, { foreignKey: 'userId' });
-// const UserModel: typeof User = User;
-// sequelize
-//     .sync()
-//     .then((data: any) => {
-//         // console.log(data)
-//     })
-//     .catch((error: Error) => {
-//         console.log(error)
-//     })
-//     .finally(() => {
-//         console.log('complete')
-//     })
 // db config
 try {
     mongoose_1.default.connect(process.env.USER_SECRET, () => { console.log('Connected to Mongoose successfull'); });
@@ -76,17 +54,6 @@ app.use((0, express_session_1.default)({
 }));
 app.use(passport_1.default.initialize());
 app.use(passport_1.default.session());
-// passport.serializeUser((user: IMongoDBUser, done: any) => {
-//     return done(null, user._id);
-// });
-// passport.deserializeUser(async (id: string, done: any) => {
-//     try {
-//         const user = await UserModel.findByPk(id as any, { raw: true });
-//         return done(null, user);
-//     } catch (error) {
-//         return done(error, null);
-//     }
-// });
 passport_1.default.serializeUser((user, done) => {
     return done(null, user._id);
 });
@@ -95,36 +62,6 @@ passport_1.default.deserializeUser((id, done) => {
         return done(null, doc);
     });
 });
-// passport.use(new GoogleStrategy({
-//     clientID: process.env.GOOGLE_CLIENT_ID,
-//     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-//     callbackURL: "/auth/google/callback",
-// },
-//     async (_: any, __: any, profile: any, cb: any) => {
-//         try {
-//             const user = await User.findOne({
-//                 where: {
-//                     googleId: profile.id
-//                 }
-//             },);
-//             if (user) {
-//                 return cb(null, user);
-//             } else {
-//                 const formattedName = profile.displayName.split(" ").join("_");
-//                 const newUser = await User.create({
-//                     displayName: `${formattedName}${Math.floor(1000 + Math.random() * 9000)}`,
-//                     userName: formattedName,
-//                     googleId: profile.id,
-//                     displayPicture: profile.photos[0].value,
-//                     isVerified: false
-//                 });
-//                 return cb(null, newUser);
-//             }
-//         } catch (error) {
-//             return cb(error);
-//         }
-//     }
-// ));
 // passport.use(new LocalStrategy({ userName: 'email' },
 //   function(email: any, password: any, done: any) {
 //     User.findOne({ email: email }, function (err: Error, user: any) {
@@ -159,7 +96,7 @@ passport_1.default.use(new GoogleStrategy({
     userProfileURL: 'https://www.googleapis.com/oauth2/v3/userinfo'
 }, function (_, __, profile, cb) {
     // console.log(profile)
-    user_1.User.findOne({ googleId: profile.id }, function (err, doc) {
+    user_1.User.findOne({ google_id: profile.id }, function (err, doc) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!err) {
                 if (doc) {
@@ -169,12 +106,12 @@ passport_1.default.use(new GoogleStrategy({
                     const formattedName = profile.displayName.split(' ').join('_');
                     console.log(formattedName);
                     user_1.User.create({
-                        displayName: formattedName + Math.floor(1000 + Math.random() * 9000),
-                        userName: formattedName,
-                        googleId: profile.id,
+                        display_name: formattedName + Math.floor(1000 + Math.random() * 9000),
+                        user_name: formattedName,
+                        google_id: profile.id,
                         // email: profile.emails[0].value,
-                        displayPicture: profile.photos[0].value,
-                        isVerified: false
+                        display_picture: profile.photos[0].value,
+                        isverified: false
                     }, (err, user) => {
                         return cb(err, user);
                     });
@@ -190,7 +127,7 @@ passport_1.default.use(new LinkedInStrategy({
     scope: ['r_emailaddress', 'r_liteprofile'],
 }, function (_, __, profile, cb) {
     // asynchronous verification, for effect...
-    console.log(profile);
+    // console.log(profile)
     process.nextTick(function () {
         user_1.User.findOne({ googleId: profile.id }, function (err, doc) {
             return __awaiter(this, void 0, void 0, function* () {
@@ -200,13 +137,13 @@ passport_1.default.use(new LinkedInStrategy({
                     }
                     else {
                         const formattedName = profile.displayName.split(' ').join('_');
-                        console.log(formattedName);
+                        // console.log(formattedName)
                         user_1.User.create({
-                            displayName: formattedName + Math.floor(1000 + Math.random() * 9000),
-                            userName: formattedName,
-                            linkedinId: profile.id,
-                            displayPicture: profile.photos[0].value,
-                            isVerified: false
+                            display_name: formattedName + Math.floor(1000 + Math.random() * 9000),
+                            user_name: formattedName,
+                            linkedin_id: profile.id,
+                            display_picture: profile.photos[0].value,
+                            isverified: false
                         }, (err, user) => {
                             return cb(err, user);
                         });
@@ -272,35 +209,12 @@ app
 app
     .route('/api')
     .get((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    // Feed.find({}, (err: Error, doc: any) => {
-    //     if (err) return err;
-    //     else {
-    //         // console.log(doc.reverse())
-    //         res.json(doc)
-    //     }
-    // })
 }))
     .post((req, res) => __awaiter(void 0, void 0, void 0, function* () {
 }));
 app
     .route('/upload')
     .get((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    // Video.find({}, (err: Error, doc: any) => {
-    //     if (err) return err
-    //     else {
-    //         console.log(doc)
-    //         doc.forEach((element: any) => {
-    //             // console.log(element.userId)
-    //             User.findById(element.userId, (err: Error, user: any) => {
-    //                 if (err) return err
-    //                 else{
-    //                     console.log(user)
-    //                 }
-    //             })
-    //         });
-    //         // res.json(doc)
-    //     }
-    // })
     try {
         const videos = yield video_1.Video.find();
         // Fetch user profile for each video
@@ -313,13 +227,12 @@ app
                 fileName: video.fileName[0],
                 thumbnail: video.thumbnail,
                 uuid: video.uuid,
-                // userId: video.userId,
-                user: user, // include the user profile
+                user: user,
                 // createdAt: video.createdAt,
                 // updatedAt: video.updatedAt
             };
         })));
-        console.log(videoData);
+        // console.log(videoData)
         res.json(videoData);
     }
     catch (err) {
@@ -350,6 +263,36 @@ app
     });
 });
 app
+    .route('/home/:postId')
+    .get((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const urlParams = req.params.postId;
+    try {
+        const videos = yield video_1.Video.findOne({ uuid: urlParams });
+        if (videos) {
+            const user = yield user_1.User.findById(videos.userId).lean();
+            const { video_title, video_description, course, fileName, createdAt } = videos;
+            const { _id, user_name, display_picture } = user;
+            const feedObject = {
+                course: course,
+                createdAt: createdAt,
+                display_picture: display_picture,
+                file_name: fileName,
+                user_id: _id,
+                user_name: user_name,
+                video_title: video_title,
+                video_description: video_description
+            };
+            res.json(feedObject);
+        }
+        else {
+            res.json(null);
+        }
+    }
+    catch (err) {
+        console.log(err);
+    }
+}));
+app
     .route('/auth/logout')
     .get((req, res) => {
     if (req.user) {
@@ -357,7 +300,7 @@ app
             if (error)
                 return error;
         });
-        res.send("done");
+        res.send(false);
     }
 });
 app.listen(Number(process.env.YOUR_PORT) || process.env.PORT || port, host, () => {

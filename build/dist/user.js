@@ -6,27 +6,27 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.User = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const userSchema = new mongoose_1.default.Schema({
-    username: {
+    user_name: {
         required: true,
         type: String
     },
-    displayname: {
+    display_name: {
         required: false,
         type: String
     },
-    googleid: {
+    google_id: {
         required: false,
         type: String
     },
-    githubid: {
+    github_id: {
         required: false,
         type: String
     },
-    linkedinid: {
+    linkedin_id: {
         required: false,
         type: String
     },
-    displaypicture: {
+    display_picture: {
         required: false,
         type: String
     },
