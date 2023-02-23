@@ -31,18 +31,18 @@ try {
 app.set("trust proxy", 1);
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+app.use(cors({ origin: `${process.env.BASE_URL}`, credentials: true }));
 // app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 app.use(
     session({
         secret: "secretcode",
         resave: true,
         saveUninitialized: true,
-        // cookie: {
-        //     sameSite: "none",
-        //     secure: true,
-        //     maxAge: 1000 * 60 * 60 * 24
-        // }
+        cookie: {
+            sameSite: "none",
+            secure: true,
+            maxAge: 1000 * 60 * 60 * 24
+        }
     })
 );
 app.use(passport.initialize());
@@ -168,8 +168,8 @@ app.get('/auth/google/callback',
         failureMessage: true
     }),
     function (req, res) {
-        // res.redirect('https://zap-twitter-clone.netlify.app/home');
-        res.redirect('http://localhost:3000/home');
+        res.redirect(`${process.env.BASE_URL}/home`);
+        // res.redirect('http://localhost:3000/home');
 
     });
 
@@ -181,8 +181,11 @@ app.get('/auth/linkedin',
     });
 
 app.get('/auth/linkedin/callback', passport.authenticate('linkedin', {
-    successRedirect: 'http://localhost:3000/home',
-    failureRedirect: 'http://localhost:3000/account'
+    // successRedirect: 'http://localhost:3000/home',
+    successRedirect: `${process.env.BASE_URL}/home`,
+    
+    // failureRedirect: 'http://localhost:3000/account'
+    failureRedirect: `${process.env.BASE_URL}/account`,
 }));
 
 app
