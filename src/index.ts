@@ -244,7 +244,7 @@ app
                 thumbnail: video.thumbnail,
                 uuid: video.uuid,
                 user: user, 
-                // createdAt: video.createdAt,
+                createdAt: video.createdAt,
                 // updatedAt: video.updatedAt
                 };
             }));
@@ -296,7 +296,7 @@ app
 
 
                     const { video_title, video_description, course, fileName, createdAt } = videos
-                    const {_id, user_name, display_picture} = user
+                    const {_id, display_name, display_picture} = user
 
                     const feedObject = {
                         course: course,
@@ -304,7 +304,7 @@ app
                         display_picture: display_picture,
                         file_name: fileName,
                         user_id: _id,
-                        user_name: user_name,
+                        display_name: display_name,
                         video_title: video_title,
                         video_description: video_description
 
