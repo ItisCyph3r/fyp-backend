@@ -46,11 +46,11 @@ app.use((0, express_session_1.default)({
     secret: "secretcode",
     resave: true,
     saveUninitialized: true,
-    cookie: {
-        sameSite: "none",
-        secure: true,
-        maxAge: 1000 * 60 * 60 * 24
-    }
+    // cookie: {
+    //     sameSite: "none",
+    //     secure: true,
+    //     maxAge: 1000 * 60 * 60 * 24
+    // }
 }));
 app.use(passport_1.default.initialize());
 app.use(passport_1.default.session());
@@ -127,9 +127,9 @@ passport_1.default.use(new LinkedInStrategy({
     scope: ['r_emailaddress', 'r_liteprofile'],
 }, function (_, __, profile, cb) {
     // asynchronous verification, for effect...
-    // console.log(profile)
+    console.log(profile);
     process.nextTick(function () {
-        user_1.User.findOne({ googleId: profile.id }, function (err, doc) {
+        user_1.User.findOne({ linkedin_id: profile.id }, function (err, doc) {
             return __awaiter(this, void 0, void 0, function* () {
                 if (!err) {
                     if (doc) {
@@ -140,7 +140,8 @@ passport_1.default.use(new LinkedInStrategy({
                         // console.log(formattedName)
                         user_1.User.create({
                             display_name: formattedName + Math.floor(1000 + Math.random() * 9000),
-                            user_name: formattedName,
+                            user_name: profile.displayName,
+                            email: profile.emails[0].value,
                             linkedin_id: profile.id,
                             display_picture: profile.photos[0].value,
                             isverified: false
@@ -209,8 +210,9 @@ app
 });
 // let feedArray: any = [];
 app
-    .route('/api')
+    .route('/api/example')
     .get((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log('Hello world');
 }))
     .post((req, res) => __awaiter(void 0, void 0, void 0, function* () {
 }));
@@ -309,3 +311,4 @@ app.listen(Number(process.env.YOUR_PORT) || process.env.PORT || port, host, () =
     // console.log(`⚡️[server]: Server is running at https://localhost:${port}`);
     console.log('Server is Live!!!');
 });
+app.route('/api');

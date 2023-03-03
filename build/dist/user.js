@@ -10,6 +10,10 @@ const userSchema = new mongoose_1.default.Schema({
         required: true,
         type: String
     },
+    email: {
+        required: false,
+        type: String
+    },
     display_name: {
         required: false,
         type: String

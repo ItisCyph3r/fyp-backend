@@ -7,12 +7,12 @@ export interface IUser{
 }
 
 export interface IMongoDBUser{
-    userName: string;
-    googleId?: string;
-    githubId?: string;
-    linkedin?: string;
+    user_name: string;
+    google_id?: string;
+    github_id?: string;
+    linkedin_id?: string;
     email?: string;
-    displayPicture?: string;
+    display_picture?: string;
     __v: number;
     _id: string;
 }

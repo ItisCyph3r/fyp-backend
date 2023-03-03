@@ -38,11 +38,11 @@ app.use(
         secret: "secretcode",
         resave: true,
         saveUninitialized: true,
-        cookie: {
-            sameSite: "none",
-            secure: true,
-            maxAge: 1000 * 60 * 60 * 24
-        }
+        // cookie: {
+        //     sameSite: "none",
+        //     secure: true,
+        //     maxAge: 1000 * 60 * 60 * 24
+        // }
     })
 );
 app.use(passport.initialize());
@@ -131,9 +131,9 @@ passport.use(new LinkedInStrategy({
 },
     function (_: any, __: any, profile: any, cb: any) {
         // asynchronous verification, for effect...
-        // console.log(profile)
+        console.log(profile)
         process.nextTick(function () {
-            User.findOne({ googleId: profile.id }, async function (err: Error, doc: IMongoDBUser) {
+            User.findOne({ linkedin_id: profile.id }, async function (err: Error, doc: IMongoDBUser) {
 
                 if (!err) {
                     if (doc) {
@@ -143,7 +143,8 @@ passport.use(new LinkedInStrategy({
                         // console.log(formattedName)
                         User.create({
                             display_name: formattedName + Math.floor(1000 + Math.random() * 9000),
-                            user_name: formattedName,
+                            user_name: profile.displayName,
+                            email: profile.emails[0].value,
                             linkedin_id: profile.id,
                             display_picture: profile.photos[0].value,
                             isverified: false
@@ -220,9 +221,9 @@ app
     })
 // let feedArray: any = [];
 app
-    .route('/api')
+    .route('/api/example')
     .get(async (req, res) => {
-
+        console.log('Hello world')
     })
 
     .post(async (req, res) => {
@@ -338,3 +339,6 @@ app.listen(Number(process.env.YOUR_PORT) || process.env.PORT || port, host, () =
     // console.log(`⚡️[server]: Server is running at https://localhost:${port}`);
     console.log('Server is Live!!!')
 })
+
+
+app.route('/api')
