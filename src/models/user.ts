@@ -1,53 +1,48 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../util/db')
-
-// const sequelize = new Sequelize('postgres://fyp_4lpx_user:n3z586VYHFVXHPbB2Kks3RCXtjdrAMuT@dpg-cfi2ur82i3murcddg3g0-a.frankfurt-postgres.render.com/fyp_4lpx')
+import mongoose from "mongoose";
 
 
-export type UserModel = typeof sequelize.Model;
+const userSchema = new mongoose.Schema({
+    user_name: {
+        required: true,
+        type: String
+    },
+    email: {
+        required: false,
+        type: String
+    },
+    display_name: {
+        required: false,
+        type: String
+    },
+    google_id: {
+        required: false,
+        type: String
+    },
+    github_id: {
+        required: false,
+        type: String
+    },
+    linkedin_id: {
+        required: false,
+        type: String
+    },
+    display_picture: {
+        required: false,
+        type: String
+    },
+    isverified: {
+        required: false,
+        type: Boolean
+    },
+    // tweets: []
+}, { timestamps: true })
 
+export const User = mongoose.model('user', userSchema);
+// export const UserT = typeof(User)
 
-// module.exports = sequelize.define('user', {
-export const User = sequelize.define('user', {
-
-    // Model attributes are defined here
-    _id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true
-    },
-    userName: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
-    displayName: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
-    googleId: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
-    displayPicture: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
-    isVerified: {
-        type: DataTypes.BOOLEAN,
-        allowNull: false,
-        defaultValue: false
-    },
-    createdAt: {
-        type: DataTypes.DATE,
-        allowNull: false,
-        defaultValue: DataTypes.NOW
-    },
-    updatedAt: {
-        type: DataTypes.DATE,
-        allowNull: false,
-        defaultValue: DataTypes.NOW
-    },
-}, {
-    timestamps: true    // Other model options go here
-});
+export interface UserT {
+    user_name?: string;
+    display_picture?: string;
+    // Add other properties as needed
+}
 

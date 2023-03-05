@@ -19,8 +19,8 @@ const body_parser_1 = __importDefault(require("body-parser"));
 const cors_1 = __importDefault(require("cors"));
 const express_session_1 = __importDefault(require("express-session"));
 const passport_1 = __importDefault(require("passport"));
-const user_1 = require("./user");
-const video_1 = require("./video");
+const user_1 = require("./models/user");
+const video_1 = require("./models/video");
 const GoogleStrategy = require('passport-google-oauth20');
 const LocalStrategy = require('passport-local').Strategy;
 const GitHubStrategy = require('passport-github').Strategy;
@@ -95,7 +95,6 @@ passport_1.default.use(new GoogleStrategy({
     callbackURL: "/auth/google/callback",
     userProfileURL: 'https://www.googleapis.com/oauth2/v3/userinfo'
 }, function (_, __, profile, cb) {
-    // console.log(profile)
     user_1.User.findOne({ google_id: profile.id }, function (err, doc) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!err) {
@@ -104,12 +103,11 @@ passport_1.default.use(new GoogleStrategy({
                 }
                 else {
                     const formattedName = profile.displayName.split(' ').join('_');
-                    console.log(formattedName);
                     user_1.User.create({
                         display_name: formattedName + Math.floor(1000 + Math.random() * 9000),
                         user_name: formattedName,
-                        google_id: profile.id,
-                        // email: profile.emails[0].value,
+                        gofogle_id: profile.id,
+                        email: profile.emails[0].value,
                         display_picture: profile.photos[0].value,
                         isverified: false
                     }, (err, user) => {
@@ -157,7 +155,7 @@ passport_1.default.use(new LinkedInStrategy({
 app
     .route('/auth/google')
     .get(passport_1.default.authenticate('google', {
-    scope: ['profile', 'email']
+    scope: ['profile', 'https://www.googleapis.com/auth/userinfo.email']
 }));
 app.get('/auth/google/callback', 
 // passport.authenticate('google', { failureRedirect: '/login',
@@ -295,6 +293,14 @@ app
     catch (err) {
         console.log(err);
     }
+}));
+app
+    .route('/api/comment')
+    .get((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    res.send(req.body);
+}))
+    .post((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log(req.body);
 }));
 app
     .route('/auth/logout')

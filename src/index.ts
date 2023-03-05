@@ -1,13 +1,13 @@
-import express, { Express } from 'express';
+import express, { Express, Request, Response } from 'express';
 import dotenv from 'dotenv';
 import mongoose, { Document, LeanDocument } from 'mongoose';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import session from 'express-session';
 import passport from 'passport';
-import { User, UserT } from './user';
-import { Video } from './video';
-import { IMongoDBUser } from './types';
+import { User, UserT } from './models/user';
+import { Video } from './models/video';
+import { IMongoDBUser } from './types/types';
 const GoogleStrategy = require('passport-google-oauth20');
 const LocalStrategy = require('passport-local').Strategy;
 
@@ -96,7 +96,6 @@ passport.use(new GoogleStrategy({
 },
     function (_: any, __: any, profile: any, cb: any) {
 
-        // console.log(profile)
         User.findOne({ google_id: profile.id }, async function (err: Error, doc: IMongoDBUser) {
 
             if (!err) {
@@ -104,12 +103,12 @@ passport.use(new GoogleStrategy({
                     return cb(err, doc)
                 } else {
                     const formattedName = profile.displayName.split(' ').join('_')
-                    console.log(formattedName)
+                    
                     User.create({
                         display_name: formattedName + Math.floor(1000 + Math.random() * 9000),
                         user_name: formattedName,
-                        google_id: profile.id,
-                        // email: profile.emails[0].value,
+                        gofogle_id: profile.id,
+                        email: profile.emails[0].value,
                         display_picture: profile.photos[0].value,
                         isverified: false
                     }, (err: any, user: any) => {
@@ -160,7 +159,7 @@ passport.use(new LinkedInStrategy({
 app
     .route('/auth/google')
     .get(passport.authenticate('google', {
-        scope: ['profile', 'email']
+        scope: ['profile', 'https://www.googleapis.com/auth/userinfo.email']
     }));
 
 app.get('/auth/google/callback',
@@ -321,6 +320,15 @@ app
         } catch (err) {
             console.log(err)
         }
+    })
+
+app
+    .route('/api/comment')
+    .get(async(req: Request, res: Response) => {
+        res.send(req.body)
+    })
+    .post(async(req: Request, res: Response) => {
+        console.log(req.body)
     })
 
 app

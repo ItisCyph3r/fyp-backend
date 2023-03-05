@@ -1,5 +1,5 @@
 import { User } from '../models/Users' // export interface User { _id: string, ... }
-import {IMongoDBUser} from '../types'
+import {IMongoDBUser} from './types'
 
 declare module 'passport' {
     interface Authenticator {

@@ -1,47 +1,43 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.User = void 0;
-const { DataTypes } = require('sequelize');
-const sequelize = require('../util/db');
-// module.exports = sequelize.define('user', {
-exports.User = sequelize.define('user', {
-    // Model attributes are defined here
-    _id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true
+const mongoose_1 = __importDefault(require("mongoose"));
+const userSchema = new mongoose_1.default.Schema({
+    user_name: {
+        required: true,
+        type: String
     },
-    userName: {
-        type: DataTypes.STRING,
-        allowNull: false
+    email: {
+        required: false,
+        type: String
     },
-    displayName: {
-        type: DataTypes.STRING,
-        allowNull: false
+    display_name: {
+        required: false,
+        type: String
     },
-    googleId: {
-        type: DataTypes.STRING,
-        allowNull: false
+    google_id: {
+        required: false,
+        type: String
     },
-    displayPicture: {
-        type: DataTypes.STRING,
-        allowNull: false
+    github_id: {
+        required: false,
+        type: String
     },
-    isVerified: {
-        type: DataTypes.BOOLEAN,
-        allowNull: false,
-        defaultValue: false
+    linkedin_id: {
+        required: false,
+        type: String
     },
-    createdAt: {
-        type: DataTypes.DATE,
-        allowNull: false,
-        defaultValue: DataTypes.NOW
+    display_picture: {
+        required: false,
+        type: String
     },
-    updatedAt: {
-        type: DataTypes.DATE,
-        allowNull: false,
-        defaultValue: DataTypes.NOW
+    isverified: {
+        required: false,
+        type: Boolean
     },
-}, {
-    timestamps: true // Other model options go here
-});
+    // tweets: []
+}, { timestamps: true });
+exports.User = mongoose_1.default.model('user', userSchema);

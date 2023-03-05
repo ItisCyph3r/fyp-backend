@@ -1,111 +1,67 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../util/db');
+import mongoose from "mongoose";
+import { User } from "./user";
 
-// define the video table
-export const Video = sequelize.define('video', {
-    _id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true
-    },
+
+import { Document } from 'mongoose';
+
+interface VideoDoc extends Document {
+    video_title: string;
+    video_description: string;
+    course: string;
+    fileName: string[];
+    thumbnail: string;
+    uuid: string;
+    userId: mongoose.SchemaDefinitionProperty<string>
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+const videoSchema = new mongoose.Schema<VideoDoc>({
     video_title: {
-        type: DataTypes.STRING,
-        allowNull: false
+        type: String,
+        // type: { type: String },
+        required: false
     },
     video_description: {
-        type: DataTypes.STRING,
-        allowNull: false
+        type: String,
+        // type: { type: String },
+        required: false
     },
     course: {
-        type: DataTypes.STRING,
-        allowNull: false
+        type: String,
+        // type: { type: String },
+        required: false
     },
-    fileName: {
-        type: DataTypes.ARRAY(DataTypes.STRING),
-        allowNull: false
-    },
+    fileName: [{
+        type: String,
+        // type: { type: String },
+        required: false
+    }],
     thumbnail: {
-        type: DataTypes.STRING,
-        allowNull: false
+        type: String,
+        // type: { type: String },
+        required: false
     },
     uuid: {
-        type: DataTypes.UUID,
-        defaultValue: DataTypes.UUIDV4,
-        allowNull: false
+        // type: { type: String },
+        type: String,
+        // default: mongoose.Types.ObjectId,
+        required: false
     },
-    date: {
-        type: DataTypes.DATE,
-        allowNull: false,
-        defaultValue: DataTypes.NOW
+    userId: {
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'User',
+        required: false
     },
-    createdAt: {
-        type: DataTypes.DATE,
-        allowNull: false,
-        defaultValue: DataTypes.NOW
-    },
-    updatedAt: {
-        type: DataTypes.DATE,
-        allowNull: false,
-        defaultValue: DataTypes.NOW
-    },
+    // date: {
+    //     type: { type: Date },
+    //     default: Date.now,
+    //     required: false
+    // }
 }, {
-    timestamps: true    // Other model options go here
+    timestamps: true
 });
 
 
+export const Video = mongoose.model<VideoDoc>('Video', videoSchema);
 
-
-
-
-
-// const { DataTypes } = require('sequelize');
-// const sequelize = require('../util/db');
-
-// // module.exports = sequelize.define('video', {
-// export const Video = sequelize.define('videos', {
-//     videoId: {
-//         type: DataTypes.INTEGER,
-//         primaryKey: true,
-//         autoIncrement: true
-//     },
-//     video_title: {
-//         type: DataTypes.STRING,
-//         allowNull: false
-//     },
-//     video_description: {
-//         type: DataTypes.STRING,
-//         allowNull: false
-//     },
-//     course: {
-//         type: DataTypes.STRING,
-//         allowNull: true
-//     },
-//     fileName: {
-//         type: DataTypes.ARRAY(DataTypes.STRING),
-//         allowNull: false
-//     },
-//     thumbnail: {
-//         type: DataTypes.STRING,
-//         allowNull: false
-//     },
-//     // userId: {
-//     //     type: DataTypes.INTEGER,
-//     //     allowNull: false
-//     // },
-//     userId: {
-//         type: DataTypes.INTEGER,
-//         references: {
-//             model: 'user',
-//             key: 'userId'
-//         },
-//         onUpdate: 'CASCADE',
-//         onDelete: 'SET NULL'
-//     },
-//     date: {
-//         type: DataTypes.DATE,
-//         allowNull: false,
-//         defaultValue: DataTypes.NOW
-//     }
-// }, {
-//     timestamps: true
-// });
