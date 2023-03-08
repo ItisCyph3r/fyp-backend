@@ -2,13 +2,14 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const CommentSchema = new Schema({
-    text: { 
+    content: { 
         type: String, 
         required: true 
     },
     author: { 
-        type: String, 
-        required: true 
+        type: Schema.Types.ObjectId, 
+        ref: 'User',
+        required: true
     },
     parentId: { 
         type: Schema.Types.ObjectId, 
@@ -17,11 +18,12 @@ const CommentSchema = new Schema({
     childComments: [
         { 
             type: Schema.Types.ObjectId, 
-            ref: 'Comment' 
+            ref: 'Comment',
         }
-    ]
+    ],
 }, { 
-    timestamps: true 
+    timestamps: true,
+    versionKey: false
 });
 
 export const Comment = mongoose.model('Comment', CommentSchema);

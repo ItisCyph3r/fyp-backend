@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 import { User } from "./user";
 
 
@@ -14,6 +14,7 @@ interface VideoDoc extends Document {
     userId: mongoose.SchemaDefinitionProperty<string>
     createdAt: Date;
     updatedAt: Date;
+    comments: Types.ObjectId[];
 }
 
 const videoSchema = new mongoose.Schema<VideoDoc>({
@@ -53,11 +54,12 @@ const videoSchema = new mongoose.Schema<VideoDoc>({
         ref: 'User',
         required: false
     },
-    // date: {
-    //     type: { type: Date },
-    //     default: Date.now,
-    //     required: false
-    // }
+    comments: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Comment'
+        }
+    ]
 }, {
     timestamps: true
 });

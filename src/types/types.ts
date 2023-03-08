@@ -16,3 +16,10 @@ export interface IMongoDBUser{
     __v: number;
     _id: string;
 }
+
+interface IComment {
+    // _id: string;
+    content: string;
+    author: string;
+    parentId: string;
+  }

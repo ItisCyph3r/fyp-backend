@@ -21,6 +21,7 @@ const express_session_1 = __importDefault(require("express-session"));
 const passport_1 = __importDefault(require("passport"));
 const user_1 = require("./models/user");
 const video_1 = require("./models/video");
+const comment_1 = require("./models/comment");
 const GoogleStrategy = require('passport-google-oauth20');
 const LocalStrategy = require('passport-local').Strategy;
 const GitHubStrategy = require('passport-github').Strategy;
@@ -125,7 +126,6 @@ passport_1.default.use(new LinkedInStrategy({
     scope: ['r_emailaddress', 'r_liteprofile'],
 }, function (_, __, profile, cb) {
     // asynchronous verification, for effect...
-    console.log(profile);
     process.nextTick(function () {
         user_1.User.findOne({ linkedin_id: profile.id }, function (err, doc) {
             return __awaiter(this, void 0, void 0, function* () {
@@ -281,8 +281,9 @@ app
                 file_name: fileName,
                 user_id: _id,
                 display_name: display_name,
+                video_id: videos._id,
                 video_title: video_title,
-                video_description: video_description
+                video_description: video_description,
             };
             res.json(feedObject);
         }
@@ -295,12 +296,69 @@ app
     }
 }));
 app
-    .route('/api/comment')
+    .route('/api/comment/:commentId')
     .get((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    res.send(req.body);
+    const vid = yield video_1.Video.find({ uuid: req.params.commentId });
+    res.json(vid);
+    // Comment.find({} ,async(err: Error, doc: any) => {
+    //     if (err) return err
+    //     else {
+    //         const comments = await Comment.find(); // fetch all comments from the database
+    //         const response: any = []; // create an empty array to store the combined objects
+    //         // loop through each comment and retrieve the user information
+    //         for (const comment of comments) {
+    //         const user: any | null = await User.findById(comment.author); // retrieve the user document from the database
+    //         // create an object to store user information and comment
+    //         // console.log(user)
+    //         const userComment = {
+    //             display_name: user.display_name,
+    //             display_picture: user.display_picture,
+    //             content: comment.content,
+    //             createdAt: comment.createdAt
+    //         };
+    //         response.push(userComment); // add the user information and comment object to the response array
+    //         }
+    //         res.json(response);
+    //     }
+    // })
 }))
     .post((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log(req.body);
+    // Comment.create({
+    //     content: req.body.content,
+    //     author: req.body.author,
+    //     parentId: req.body.parentId
+    // }, (err: Error, doc: any) => {
+    //     if (err) {
+    //         console.log(err); // Log any errors that occur during the save operation
+    //         return res.status(500).send('Error Creating Comment');
+    //     } else {
+    //         console.log('Comment Added:', doc); // Log the saved document for debugging purposes
+    //         // return res.send('Comment Saved Successfully');
+    //     }
+    // });
+    const comment = new comment_1.Comment({
+        content: req.body.content,
+        author: req.body.author,
+        parentId: req.body.parentId,
+        videoId: req.body.videoId
+    });
+    try {
+        const savedComment = yield comment.save();
+        const updatedVideo = yield video_1.Video.findByIdAndUpdate(req.body.videoId, { $push: { comments: savedComment._id } }, { new: true }).populate('comments').exec(); // <-- added .exec() to execute the query
+        if (updatedVideo) { // <-- check if the video document exists
+            console.log(updatedVideo);
+            res.json(updatedVideo);
+        }
+        else {
+            console.log(`Video with id ${req.body.videoId} does not exist`);
+            res.sendStatus(404);
+        }
+    }
+    catch (err) {
+        console.error(err);
+        res.sendStatus(500);
+    }
+    //   console.log(req.body)
 }));
 app
     .route('/auth/logout')

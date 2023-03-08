@@ -19,7 +19,6 @@ module.exports = new Sequelize(process.env.DATABASE_API_KEY, {
         ssl: true,
         native: true
     }
-}
-)
+})
 
 // module.exports = sequelize;

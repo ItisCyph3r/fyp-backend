@@ -42,11 +42,12 @@ const videoSchema = new mongoose_1.default.Schema({
         ref: 'User',
         required: false
     },
-    // date: {
-    //     type: { type: Date },
-    //     default: Date.now,
-    //     required: false
-    // }
+    comments: [
+        {
+            type: mongoose_1.default.Schema.Types.ObjectId,
+            ref: 'Comment'
+        }
+    ]
 }, {
     timestamps: true
 });
