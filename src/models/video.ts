@@ -4,7 +4,7 @@ import { User } from "./user";
 
 import { Document } from 'mongoose';
 
-interface VideoDoc extends Document {
+export interface VideoDoc extends Document {
     video_title: string;
     video_description: string;
     course: string;

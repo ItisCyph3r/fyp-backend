@@ -22,6 +22,8 @@ const passport_1 = __importDefault(require("passport"));
 const user_1 = require("./models/user");
 const video_1 = require("./models/video");
 const comment_1 = require("./models/comment");
+const AWS = require('aws-sdk');
+const s3 = new AWS.S3();
 const GoogleStrategy = require('passport-google-oauth20');
 const LocalStrategy = require('passport-local').Strategy;
 const GitHubStrategy = require('passport-github').Strategy;
@@ -44,14 +46,22 @@ app.use(body_parser_1.default.json());
 app.use((0, cors_1.default)({ origin: `${process.env.BASE_URL}`, credentials: true }));
 // app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 app.use((0, express_session_1.default)({
-    secret: "secretcode",
-    resave: true,
-    saveUninitialized: true,
+    // secret: "secretcode",
+    // resave: true,
+    // saveUninitialized: true,
     // cookie: {
     //     sameSite: "none",
     //     secure: true,
     //     maxAge: 1000 * 60 * 60 * 24
     // }
+    secret: 'LDR has some of the best animations',
+    resave: false,
+    saveUninitialized: true,
+    // cookie: {
+    //         sameSite: "none",
+    //         secure: true,
+    //         maxAge: 1000 * 60 * 60 * 24
+    //     }
 }));
 app.use(passport_1.default.initialize());
 app.use(passport_1.default.session());
@@ -204,7 +214,12 @@ app
 app
     .route('/')
     .get((req, res) => {
-    res.json('yeaaaah boooy');
+    if (req.isAuthenticated()) {
+        res.json(req.session.passport.user);
+    }
+    else {
+        res.json('invalid');
+    }
 });
 // let feedArray: any = [];
 app
@@ -223,6 +238,7 @@ app
         const videoData = yield Promise.all(videos.map((video) => __awaiter(void 0, void 0, void 0, function* () {
             const user = yield user_1.User.findById(video.userId);
             return {
+                video_id: video._id,
                 video_title: video.video_title,
                 video_description: video.video_description,
                 course: video.course,
@@ -296,69 +312,105 @@ app
     }
 }));
 app
-    .route('/api/comment/:commentId')
+    .route('/api/comment')
     .get((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const vid = yield video_1.Video.find({ uuid: req.params.commentId });
-    res.json(vid);
-    // Comment.find({} ,async(err: Error, doc: any) => {
-    //     if (err) return err
-    //     else {
-    //         const comments = await Comment.find(); // fetch all comments from the database
-    //         const response: any = []; // create an empty array to store the combined objects
-    //         // loop through each comment and retrieve the user information
-    //         for (const comment of comments) {
-    //         const user: any | null = await User.findById(comment.author); // retrieve the user document from the database
-    //         // create an object to store user information and comment
-    //         // console.log(user)
-    //         const userComment = {
-    //             display_name: user.display_name,
-    //             display_picture: user.display_picture,
-    //             content: comment.content,
-    //             createdAt: comment.createdAt
-    //         };
-    //         response.push(userComment); // add the user information and comment object to the response array
-    //         }
-    //         res.json(response);
-    //     }
-    // })
+    try {
+        const video = yield video_1.Video.findOne({ uuid: req.query.v });
+        if (!video) {
+            return res.status(404).json({ message: 'Video not found' });
+        }
+        const comments = yield Promise.all(video.comments.map((commentId) => __awaiter(void 0, void 0, void 0, function* () {
+            const comment = yield comment_1.Comment.findById(commentId);
+            const user = yield user_1.User.findById(comment.author);
+            return {
+                _id: comment._id,
+                content: comment.content,
+                display_name: user === null || user === void 0 ? void 0 : user.display_name,
+                display_picture: user === null || user === void 0 ? void 0 : user.display_picture,
+                createdAt: comment.createdAt,
+            };
+        })));
+        res.json(comments);
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
 }))
     .post((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    // Comment.create({
-    //     content: req.body.content,
-    //     author: req.body.author,
-    //     parentId: req.body.parentId
-    // }, (err: Error, doc: any) => {
-    //     if (err) {
-    //         console.log(err); // Log any errors that occur during the save operation
-    //         return res.status(500).send('Error Creating Comment');
-    //     } else {
-    //         console.log('Comment Added:', doc); // Log the saved document for debugging purposes
-    //         // return res.send('Comment Saved Successfully');
-    //     }
-    // });
+    const vid = yield video_1.Video.find({ uuid: req.params.commentId });
     const comment = new comment_1.Comment({
         content: req.body.content,
         author: req.body.author,
         parentId: req.body.parentId,
-        videoId: req.body.videoId
     });
     try {
         const savedComment = yield comment.save();
-        const updatedVideo = yield video_1.Video.findByIdAndUpdate(req.body.videoId, { $push: { comments: savedComment._id } }, { new: true }).populate('comments').exec(); // <-- added .exec() to execute the query
-        if (updatedVideo) { // <-- check if the video document exists
-            console.log(updatedVideo);
-            res.json(updatedVideo);
-        }
-        else {
-            console.log(`Video with id ${req.body.videoId} does not exist`);
-            res.sendStatus(404);
-        }
+        vid.map((video) => __awaiter(void 0, void 0, void 0, function* () {
+            const updatedVideo = yield video_1.Video.findByIdAndUpdate(video._id, { $push: { comments: savedComment._id } }, { new: true }).populate('comments').exec(); // <-- added .exec() to execute the query
+            if (updatedVideo) { // <-- check if the video document exists
+                res.json(updatedVideo);
+            }
+            else {
+                console.log(`Video with id ${video._id} does not exist`);
+                res.sendStatus(404);
+            }
+        }));
     }
     catch (err) {
         console.error(err);
         res.sendStatus(500);
     }
-    //   console.log(req.body)
+}));
+app
+    .route('/watch')
+    .get((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log(process.env.AWS_ACCESS_KEY_ID, ' + ', process.env.AWS_SECRET_ACCESS_KEY);
+    AWS.config.update({
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    });
+    if (req.isAuthenticated()) {
+        try {
+            const videoId = req.query.v;
+            const video = yield video_1.Video.findOne({ uuid: videoId });
+            if (!video) {
+                return res.status(404).json({ message: "Video not found" });
+            }
+            // Check if authenticated user is the same as the user who uploaded the video
+            if (req.session.passport.user !== video.userId.toString()) {
+                return res.status(403).json({ message: "Unauthorized to delete this video" });
+            }
+            else {
+                // Delete video and thumbnail files from AWS S3
+                const params = {
+                    Bucket: process.env.AWS_BUCKET_NAME,
+                    Delete: {
+                        Objects: [
+                            { Key: `${video.userId}/video/${video.fileName[0]}` },
+                            { Key: `${video.userId}/thumbnail/${video.thumbnail}` },
+                        ],
+                    },
+                };
+                yield s3.deleteObjects(params).promise();
+                // Delete video record from database
+                yield video_1.Video.deleteOne({ _id: video._id }, (err, result) => {
+                    if (err) {
+                        console.error(err);
+                        return;
+                    }
+                    console.log(result); // { n: 1, ok: 1 })
+                    return res.json({ message: "Video deleted successfully" });
+                });
+            }
+        }
+        catch (error) {
+            return res.status(500).json(error);
+        }
+    }
+    else {
+        return res.json({ message: "Unauthorized User" });
+    }
 }));
 app
     .route('/auth/logout')
