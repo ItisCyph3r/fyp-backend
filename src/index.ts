@@ -1,6 +1,7 @@
 import express, { Express, Request, Response } from 'express';
 import dotenv from 'dotenv';
 import mongoose, { Document, LeanDocument } from 'mongoose';
+import morgan from 'morgan';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import session from 'express-session';
@@ -37,7 +38,7 @@ app.set("trust proxy", 1);
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors({ origin: `${process.env.BASE_URL}`, credentials: true }));
-// app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+// app.use(morgan('dev'))
 app.use(
     session({
         // secret: "secretcode",
@@ -314,23 +315,24 @@ app
 
             if (videos) {
                 
-                    const user: any | null = await User.findById(videos.userId).lean();
+                const user: any | null = await User.findById(videos.userId).lean();
 
 
-                    const { video_title, video_description, course, fileName, createdAt } = videos
-                    const { _id, display_name, display_picture } = user
+                const { video_title, video_description, course, fileName, createdAt } = videos
+                const { _id, display_name, display_picture } = user
 
-                    const feedObject = {
-                        course: course,
-                        createdAt: createdAt,
-                        display_picture: display_picture,
-                        file_name: fileName,
-                        user_id: _id,
-                        display_name: display_name,
-                        video_id: videos._id,
-                        video_title: video_title,
-                        video_description: video_description,
-                    }
+                const feedObject = {
+                    course: course,
+                    createdAt: createdAt,
+                    display_picture: display_picture,
+                    file_name: fileName,
+                    user_id: _id,
+                    display_name: display_name,
+                    video_id: videos._id,
+                    video_title: video_title,
+                    video_description: video_description,
+                }
+
                 res.json(feedObject)
             }
             else{
@@ -350,7 +352,8 @@ app
             if (!video) {
                 return res.status(404).json({ message: 'Video not found' });
             }
-        
+            
+            console.log(video)
             const comments = await Promise.all(
                 video.comments.map(async (commentId) => {
                     const comment = await Comment.findById(commentId);
@@ -374,7 +377,7 @@ app
     })
     .post(async(req: Request, res: Response) => {
     
-        const vid: any = await Video.find({uuid: req.params.commentId})
+        const vid: any = await Video.find({uuid: req.query.v})
         
         const comment = new Comment({
             content: req.body.content,

@@ -44,7 +44,7 @@ app.set("trust proxy", 1);
 app.use(body_parser_1.default.urlencoded({ extended: false }));
 app.use(body_parser_1.default.json());
 app.use((0, cors_1.default)({ origin: `${process.env.BASE_URL}`, credentials: true }));
-// app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+// app.use(morgan('dev'))
 app.use((0, express_session_1.default)({
     // secret: "secretcode",
     // resave: true,
@@ -319,6 +319,7 @@ app
         if (!video) {
             return res.status(404).json({ message: 'Video not found' });
         }
+        console.log(video);
         const comments = yield Promise.all(video.comments.map((commentId) => __awaiter(void 0, void 0, void 0, function* () {
             const comment = yield comment_1.Comment.findById(commentId);
             const user = yield user_1.User.findById(comment.author);
@@ -338,7 +339,7 @@ app
     }
 }))
     .post((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const vid = yield video_1.Video.find({ uuid: req.params.commentId });
+    const vid = yield video_1.Video.find({ uuid: req.query.v });
     const comment = new comment_1.Comment({
         content: req.body.content,
         author: req.body.author,
