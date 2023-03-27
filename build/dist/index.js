@@ -57,11 +57,11 @@ app.use((0, express_session_1.default)({
     secret: 'LDR has some of the best animations',
     resave: false,
     saveUninitialized: true,
-    // cookie: {
-    //         sameSite: "none",
-    //         secure: true,
-    //         maxAge: 1000 * 60 * 60 * 24
-    //     }
+    cookie: {
+        sameSite: "none",
+        secure: true,
+        maxAge: 1000 * 60 * 60 * 24
+    }
 }));
 app.use(passport_1.default.initialize());
 app.use(passport_1.default.session());
