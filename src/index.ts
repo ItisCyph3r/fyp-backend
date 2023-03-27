@@ -41,15 +41,6 @@ app.use(cors({ origin: `${process.env.BASE_URL}`, credentials: true }));
 // app.use(morgan('dev'))
 app.use(
     session({
-        // secret: "secretcode",
-        // resave: true,
-        // saveUninitialized: true,
-        // cookie: {
-        //     sameSite: "none",
-        //     secure: true,
-        //     maxAge: 1000 * 60 * 60 * 24
-        // }
-
         secret: 'LDR has some of the best animations',
         resave: false,
         saveUninitialized: true,

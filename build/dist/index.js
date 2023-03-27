@@ -46,14 +46,6 @@ app.use(body_parser_1.default.json());
 app.use((0, cors_1.default)({ origin: `${process.env.BASE_URL}`, credentials: true }));
 // app.use(morgan('dev'))
 app.use((0, express_session_1.default)({
-    // secret: "secretcode",
-    // resave: true,
-    // saveUninitialized: true,
-    // cookie: {
-    //     sameSite: "none",
-    //     secure: true,
-    //     maxAge: 1000 * 60 * 60 * 24
-    // }
     secret: 'LDR has some of the best animations',
     resave: false,
     saveUninitialized: true,
