@@ -44,11 +44,11 @@ app.use(
         secret: 'LDR has some of the best animations',
         resave: false,
         saveUninitialized: true,
-        // cookie: {
-        //         sameSite: "none",
-        //         secure: true,
-        //         maxAge: 1000 * 60 * 60 * 24
-        //     }
+        cookie: {
+                sameSite: "none",
+                secure: true,
+                maxAge: 1000 * 60 * 60 * 24
+            }
     })
 );
 app.use(passport.initialize());
@@ -172,7 +172,6 @@ app.get('/auth/google/callback',
     }),
     function (req, res) {
         res.redirect(`${process.env.BASE_URL}/watch`);
-        // res.redirect('http://localhost:3000/home');
 
     });
 
