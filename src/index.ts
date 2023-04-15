@@ -44,11 +44,11 @@ app.use(
         secret: 'LDR has some of the best animations',
         resave: false,
         saveUninitialized: true,
-        cookie: {
-                sameSite: "none",
-                secure: true,
-                maxAge: 1000 * 60 * 60 * 24
-            }
+        // cookie: {
+        //         sameSite: "none",
+        //         secure: true,
+        //         maxAge: 1000 * 60 * 60 * 24
+        //     }
     })
 );
 app.use(passport.initialize());
@@ -66,30 +66,26 @@ passport.deserializeUser((id: string, done: any) => {
 
 })
 
-// passport.use(new LocalStrategy({ userName: 'email' },
-//   function(email: any, password: any, done: any) {
-//     User.findOne({ email: email }, function (err: Error, user: any) {
-//       if (err) { return done(err); }
-//       if (!user) { return done(null, false, { message: 'Incorrect email.' }); }
-//       user.authenticate(password, function(err: any, isMatch: any) {
-//         if (err) { return done(err); }
-//         if (!isMatch) { return done(null, false, { message: 'Incorrect password.' }); }
-//         return done(null, user);
-//       });
-//     });
-//   }
-// ));
 
-passport.use(new LocalStrategy(
-    function(username: any, password: any, done: any) {
-      User.findOne({ username: username }, function (err:Error, user: any) {
-        if (err) { return done(err); }
-        if (!user) { return done(null, false); }
-        if (!user.verifyPassword(password)) { return done(null, false); }
-        return done(null, user);
-      });
-    }
-  ));
+
+//     passport.use(new LocalStrategy({
+//         usernameField: 'user_name',
+//         passwordField: 'password'
+//     }, async (user_name: string, password: string, done: any) => {
+//         try {
+//             const user = await User.findOne({ user_name });
+//             if (!user) {
+//                 return done(null, false, { message: 'Incorrect username or password.' });
+//             }
+//             const isValidPassword = await User.checkPassword(password);
+//             if (!isValidPassword) {
+//                 return done(null, false, { message: 'Incorrect username or password.' });
+//             }
+//             return done(null, user);
+//         } catch (error) {
+//             return done(error);
+//         }
+// }));
 
 
 
@@ -173,7 +169,7 @@ app.get('/auth/google/callback',
         failureMessage: true
     }),
     function (req, res) {
-        res.redirect(`${process.env.BASE_URL}/home`);
+        res.redirect(`${process.env.BASE_URL}/watch`);
         // res.redirect('http://localhost:3000/home');
 
     });
@@ -187,7 +183,7 @@ app.get('/auth/linkedin',
 
 app.get('/auth/linkedin/callback', passport.authenticate('linkedin', {
     // successRedirect: 'http://localhost:3000/home',
-    successRedirect: `${process.env.BASE_URL}/home`,
+    successRedirect: `${process.env.BASE_URL}/watch`,
     
     // failureRedirect: 'http://localhost:3000/account'
     failureRedirect: `${process.env.BASE_URL}/account`,
@@ -200,20 +196,86 @@ app
         res.send(req.user);
     })
 
-app
-    .route('/signup')
-    .post(function(req, res, next) {
-        const { username, password } = req.body;
-        User.findOne({ username: username }, function (err: Error, user: any) {
-            if (err) { return next(err); }
-            if (user) { return res.status(409).send({ message: 'Username already taken' }); }
+    app
+    .route('/api/checkEmail')
+    .post((req, res) => {
+        console.log(req.body)
+        
+        User.findOne({ email: req.body.username }, (err: Error, user: any) => {
+            if (err) {
+                console.error(err);
+            }
+            else {
+                if (user) {
+                    // Email exists, return 200 status code
+                    res.sendStatus(200);
+                } else {
+                    // Email does not exist, return 404 status code
+                    res.sendStatus(404);
+                }
+            }
+        })
+    })
 
-            const newUser = new User({ username, password });
-                newUser.save(function (err) {
-                    if (err) { return next(err); }
-                return res.send({ message: 'User created successfully' });
+app
+    .route('/api/signup')
+    .get((req, res) => {    
+        // console.log(req.user)
+        console.log('fml')
+    })
+    .post(async(req, res, next) => {
+
+        // try {
+        //     const { username, email, password } = req.body;
+        //     // console.log({username, email, password})
+        //     const existingEmail = await User.findOne({ email: email });
+        //     const existingUsername = await User.findOne({ display_name: username });
+        //     // console.log(existingUsername)
+
+        //     if (existingEmail) { return res.json({ message: 'Email already exists' }); }
+        //     if (existingUsername) { return res.json({ message: 'User already exists' }); }
+
+        //     const newUser = new User({
+        //         email: email,
+        //         user_name: username,
+        //         password: password
+        //     });
+
+        //     newUser.save();
+
+        //     return res.status(200).json({ message: 'User created successfully' });
+        // // } catch (error) {
+        // //     console.error(error);
+        // //     return res.status(500).json({ message: 'Server error' });
+        // }
+        // catch (err) {
+        //     console.log(err)
+        // }
+
+        try {
+            const { username, email, password } = req.body;
+            const existingEmail = await User.findOne({ email: email });
+            const existingUsername = await User.findOne({ user_name: username });
+        
+            if (existingEmail) {
+                return res.status(400).json({ message: 'Email already exists' });
+            }
+            if (existingUsername) {
+                return res.status(400).json({ message: 'Username already exists' });
+            }
+        
+            const newUser = new User({
+                email: email,
+                user_name: username,
+                password: password,
             });
-        });
+        
+            await newUser.save();
+        
+            return res.status(201).json({ message: 'User created successfully' });
+        } catch (error) {
+            console.error
+        }
     });
 
 
@@ -294,7 +356,7 @@ app
 
 
 app
-    .route('/home/:postId')
+    .route('/api/watch/:postId')
     .get(async(req, res) => {
         const urlParams = req.params.postId;
 
@@ -402,7 +464,7 @@ app
 
 
 app 
-    .route('/watch')
+    .route('/api/delete')
     .get(async(req: any, res: any) => {
         console.log(process.env.AWS_ACCESS_KEY_ID, ' + ', process.env.AWS_SECRET_ACCESS_KEY)
         
