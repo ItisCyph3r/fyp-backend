@@ -167,7 +167,8 @@ app.get('/auth/google/callback',
     // passport.authenticate('google', { failureRedirect: '/login',
     passport.authenticate('google', {
         failureMessage: true,
-        failureRedirect:
+        successRedirect: `${process.env.BASE_URL}/watch`,
+        failureRedirect: `${process.env.BASE_URL}/account`,
     }),
     function (req, res) {
         res.redirect(`${process.env.BASE_URL}/watch`);
@@ -183,10 +184,8 @@ app.get('/auth/linkedin',
     });
 
 app.get('/auth/linkedin/callback', passport.authenticate('linkedin', {
-    // successRedirect: 'http://localhost:3000/home',
+    failureMessage: true,
     successRedirect: `${process.env.BASE_URL}/watch`,
-    
-    // failureRedirect: 'http://localhost:3000/account'
     failureRedirect: `${process.env.BASE_URL}/account`,
 }));
 
