@@ -55,7 +55,7 @@
 
 
 import mongoose, { Document } from 'mongoose';
-import bcrypt from 'bcrypt';
+
 
 export interface UserDocument extends Document {
   user_name: string;
@@ -110,10 +110,10 @@ const userSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Add the checkPassword method to the userSchema
-userSchema.methods.checkPassword = async function (password: string) {
-  const match = await bcrypt.compare(password, this.password);
-  return match;
-};
+// userSchema.methods.checkPassword = async function (password: string) {
+//   const match = await bcrypt.compare(password, this.password);
+//   return match;
+// };
 
 // Define and export the User model
 export const User = mongoose.model<UserDocument>('User', userSchema);

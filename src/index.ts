@@ -166,7 +166,8 @@ app
 app.get('/auth/google/callback',
     // passport.authenticate('google', { failureRedirect: '/login',
     passport.authenticate('google', {
-        failureMessage: true
+        failureMessage: true,
+        failureRedirect:
     }),
     function (req, res) {
         res.redirect(`${process.env.BASE_URL}/watch`);
